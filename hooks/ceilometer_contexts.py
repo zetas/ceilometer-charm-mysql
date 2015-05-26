@@ -51,7 +51,7 @@ class SharedDBContext(OSContextGenerator):
         db_servers = []
         replset = None
         use_replset = os_release('ceilometer-api') >= 'icehouse'
-        db_relation = []
+        db_relation = {}
 
         #These next 9 lines need to be refactored into something better but this 
         # shows the general idea.

@@ -31,6 +31,8 @@ class SharedDBContext(OSContextGenerator):
 
     MYSQL_RELATION = {
         'hostname': 'host',
+        'user': 'user',
+        'password': 'password',
         'port': 3306,
         'db_select': 'mysql',
         'relations': []
@@ -38,6 +40,8 @@ class SharedDBContext(OSContextGenerator):
 
     MONGO_RELATION = {
         'hostname': 'hostname',
+        'user': None,
+        'password': None,
         'port': 'port',
         'db_select': 'mongodb',
         'relations': []
@@ -70,6 +74,11 @@ class SharedDBContext(OSContextGenerator):
             for unit in rel_units:
 
                 host = relation_get(db_relation['hostname'], unit, relid)
+
+                if db_relation['user'] and db_relation['password']:
+                    user = relation_get(db_relation['user'], unit, relid)
+                    password = relation_get(db_relation['password'], unit, relid)
+                    host = '{}:{}@{}'.format(user, password, host)
 
                 if type(db_relation['port']) == int:
                     port = db_relation['port']

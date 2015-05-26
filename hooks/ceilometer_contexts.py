@@ -29,36 +29,58 @@ class LoggingConfigContext(OSContextGenerator):
 class SharedDBContext(OSContextGenerator):
     interfaces = ['mongodb', 'mysql']
 
+    MYSQL_RELATION = {
+        'hostname': 'host',
+        'port': 3306,
+        'db_select': 'mysql',
+        'relations': []
+    }
+
+    MONGO_RELATION = {
+        'hostname': 'hostname',
+        'port': 'port',
+        'db_select': 'mongodb',
+        'relations': []
+    }
+
     def __call__(self):
         db_servers = []
         replset = None
         use_replset = os_release('ceilometer-api') >= 'icehouse'
-	relations = []
+        db_relation = []
 
         #These next 9 lines need to be refactored into something better but this 
         # shows the general idea.
         mongo_relations = relation_ids('shared-db')
         mysql_relations = relation_ids('shared-db-mysql')
 
-        if (len(mongo_relations)):
-            db_select = 'mongodb'
-            relations = mongo_relations
-        elif (len(mysql_relations)):
-            db_select = 'mysql'
-            relations = mysql_relations
+        if len(mongo_relations):
+            db_relation = self.MONGO_RELATION
+            db_relation.update(relations=mongo_relations)
+        elif len(mysql_relations):
+            db_relation = self.MYSQL_RELATION
+            db_relation.update(relations=mysql_relations)
+        else:
+            db_relation['relations'] = []
 
-        for relid in relations:
+        for relid in db_relation['relations']:
             rel_units = related_units(relid)
             use_replset = use_replset and (len(rel_units) > 1)
 
             for unit in rel_units:
-                host = relation_get('hostname', unit, relid)
-                port = relation_get('port', unit, relid)
+
+                host = relation_get(db_relation['hostname'], unit, relid)
+
+                if type(db_relation['port']) == int:
+                    port = db_relation['port']
+                else:
+                    port = relation_get(db_relation['port'], unit, relid)
 
                 conf = {
                     "db_host": host,
                     "db_port": port,
-                    "db_name": CEILOMETER_DB
+                    "db_name": CEILOMETER_DB,
+                    "db_select": db_relation['db_select']
                 }
 
                 if not context_complete(conf):
@@ -77,7 +99,7 @@ class SharedDBContext(OSContextGenerator):
                 'db_servers': ','.join(db_servers),
                 'db_name': CEILOMETER_DB,
                 'db_replset': replset,
-                'db_select': db_select
+                'db_select': db_relation['db_select']
             }
 
         return {}

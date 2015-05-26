@@ -10,7 +10,7 @@ from charmhelpers.contrib.openstack import (
 from ceilometer_contexts import (
     ApacheSSLContext,
     LoggingConfigContext,
-    MongoDBContext,
+    SharedDBContext,
     CeilometerContext,
     HAProxyContext
 )
@@ -50,6 +50,8 @@ CEILOMETER_PACKAGES = [
     'ceilometer-collector',
     'ceilometer-api',
     'python-pymongo',
+    'mysql-client',
+    'python-mysqldb'
 ]
 
 ICEHOUSE_PACKAGES = [
@@ -73,7 +75,7 @@ CONFIG_FILES = OrderedDict([
                                                          service_user=SVC),
                           context.AMQPContext(ssl_dir=CEILOMETER_CONF_DIR),
                           LoggingConfigContext(),
-                          MongoDBContext(),
+                          SharedDBContext(),
                           CeilometerContext(),
                           context.SyslogContext(),
                           HAProxyContext()],

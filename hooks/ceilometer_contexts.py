@@ -26,15 +26,28 @@ class LoggingConfigContext(OSContextGenerator):
         return {'debug': config('debug'), 'verbose': config('verbose')}
 
 
-class MongoDBContext(OSContextGenerator):
-    interfaces = ['mongodb']
+class SharedDBContext(OSContextGenerator):
+    interfaces = ['mongodb', 'mysql']
 
     def __call__(self):
-        mongo_servers = []
+        db_servers = []
         replset = None
         use_replset = os_release('ceilometer-api') >= 'icehouse'
+	relations = []
 
-        for relid in relation_ids('shared-db'):
+        #These next 9 lines need to be refactored into something better but this 
+        # shows the general idea.
+        mongo_relations = relation_ids('shared-db')
+        mysql_relations = relation_ids('shared-db-mysql')
+
+        if (len(mongo_relations)):
+            db_select = 'mongodb'
+            relations = mongo_relations
+        elif (len(mysql_relations)):
+            db_select = 'mysql'
+            relations = mysql_relations
+
+        for relid in relations:
             rel_units = related_units(relid)
             use_replset = use_replset and (len(rel_units) > 1)
 
@@ -57,17 +70,17 @@ class MongoDBContext(OSContextGenerator):
                 if replset is None:
                     replset = relation_get('replset', unit, relid)
 
-                mongo_servers.append('{}:{}'.format(host, port))
+                db_servers.append('{}:{}'.format(host, port))
 
-        if mongo_servers:
+        if db_servers:
             return {
-                'db_mongo_servers': ','.join(mongo_servers),
+                'db_servers': ','.join(db_servers),
                 'db_name': CEILOMETER_DB,
-                'db_replset': replset
+                'db_replset': replset,
+                'db_select': db_select
             }
 
         return {}
-
 
 CEILOMETER_PORT = 8777
 

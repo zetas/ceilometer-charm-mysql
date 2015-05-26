@@ -86,6 +86,10 @@ def amqp_joined():
 def db_joined():
     relation_set(ceilometer_database=CEILOMETER_DB)
 
+@hooks.hook("shared-db-mysql-relation-joined")
+def mysql_db_joined():
+    subprocess.call(['ceilometer-dbsync'])
+
 
 @hooks.hook("amqp-relation-changed",
             "shared-db-relation-changed",

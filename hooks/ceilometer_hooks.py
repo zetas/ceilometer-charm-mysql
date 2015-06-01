@@ -81,22 +81,15 @@ def amqp_joined():
                  vhost=config('rabbit-vhost'))
 
 
-@hooks.hook("shared-db-relation-joined",
-            "shared-db-mysql-relation-joined")
+@hooks.hook("shared-db-relation-joined")
 def db_joined():
     relation_set(ceilometer_database=CEILOMETER_DB)
-
-@hooks.hook("shared-db-mysql-relation-joined")
-def mysql_db_joined():
     subprocess.call(['ceilometer-dbsync'])
 
 
 @hooks.hook("amqp-relation-changed",
             "shared-db-relation-changed",
-            "shared-db-mysql-relation-changed",
-            "shared-db-relation-departed",
-            "shared-db-mysql-relation-departed",
-            "shared-db-mysql-relation-broken")
+            "shared-db-relation-departed")
 @restart_on_change(restart_map())
 def any_changed():
     CONFIGS.write_all()

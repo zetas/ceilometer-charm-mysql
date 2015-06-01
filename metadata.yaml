@@ -20,7 +20,6 @@ provides:
 requires:
   shared-db:
     interface: mongodb
-  shared-db-mysql:
     interface: mysql
   amqp:
     interface: rabbitmq

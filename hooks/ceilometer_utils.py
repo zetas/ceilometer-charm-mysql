@@ -10,7 +10,7 @@ from charmhelpers.contrib.openstack import (
 from ceilometer_contexts import (
     ApacheSSLContext,
     LoggingConfigContext,
-    SharedDBContext,
+    MongoDBContext,
     CeilometerContext,
     HAProxyContext
 )
@@ -75,7 +75,8 @@ CONFIG_FILES = OrderedDict([
                                                          service_user=SVC),
                           context.AMQPContext(ssl_dir=CEILOMETER_CONF_DIR),
                           LoggingConfigContext(),
-                          SharedDBContext(),
+                          context.SharedDBContext(),
+                          MongoDBContext(),
                           CeilometerContext(),
                           context.SyslogContext(),
                           HAProxyContext()],

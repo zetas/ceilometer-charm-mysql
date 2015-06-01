@@ -83,7 +83,7 @@ def amqp_joined():
 
 @hooks.hook("shared-db-relation-joined")
 def db_joined():
-    relation_set(ceilometer_database=CEILOMETER_DB)
+    relation_set(ceilometer_database=CEILOMETER_DB, database=CEILOMETER_DB)
     subprocess.call(['ceilometer-dbsync'])
 
 

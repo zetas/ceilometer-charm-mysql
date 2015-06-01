@@ -21,7 +21,7 @@ requires:
   shared-db:
     interface: mongodb
   mysql-db:
-    interface: mysql
+    interface: mysql-shared
   amqp:
     interface: rabbitmq
   identity-service:

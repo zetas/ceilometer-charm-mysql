@@ -121,3 +121,12 @@ options:
     description: |
       Default multicast port number that will be used to communicate between
       HA Cluster nodes.
+  # Database configuration options
+  database:
+    type: string
+    default: ceilometer
+    description: Database name for telemetry storage.
+  database-user:
+    type: string
+    default: ceilometer
+    description: Requested database username for telemetry database.

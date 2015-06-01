@@ -198,7 +198,7 @@ class SharedDBContext(OSContextGenerator):
     interfaces = ['shared-db']
 
     def __init__(self,
-                 database=None, relation_prefix=None, ssl_dir=None):
+                 database=None, user=None, relation_prefix=None, ssl_dir=None):
         """Allows inspecting relation for settings prefixed with
         relation_prefix. This is useful for parsing access for multiple
         databases returned via the shared-db interface (eg, nova_password,
@@ -206,14 +206,13 @@ class SharedDBContext(OSContextGenerator):
         """
         self.relation_prefix = relation_prefix
         self.database = database
-        #self.user = user
+        self.user = user
         self.ssl_dir = ssl_dir
 
     def __call__(self):
         self.database = self.database or config('database')
-        #self.user = self.user or config('database-user')
-        #if None in [self.database, self.user]:
-        if None in [self.database]:
+        self.user = self.user or config('database-user')
+        if None in [self.database, self.user]:
             log("Could not generate shared_db context. Missing required charm "
                 "config options. (database name and user)", level=ERROR)
             raise OSContextError
@@ -238,10 +237,8 @@ class SharedDBContext(OSContextGenerator):
                 return None  # Defer any further hook execution for now....
 
         password_setting = 'password'
-        user_setting = 'user'
         if self.relation_prefix:
             password_setting = self.relation_prefix + '_password'
-            user_setting = self.relation_prefix + '_user'
 
         for rid in relation_ids('shared-db'):
             for unit in related_units(rid):
@@ -251,7 +248,7 @@ class SharedDBContext(OSContextGenerator):
                 ctxt = {
                     'database_host': host,
                     'database': self.database,
-                    'database_user': rdata.get(user_setting),
+                    'database_user': self.user,
                     'database_password': rdata.get(password_setting),
                     'database_type': 'mysql'
                 }

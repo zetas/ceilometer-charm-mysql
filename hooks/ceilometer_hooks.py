@@ -18,6 +18,9 @@ from charmhelpers.core.hookenv import (
     config,
     Hooks, UnregisteredHookError,
     log,
+    is_relation_made,
+    ERROR,
+    unit_get
 )
 from charmhelpers.core.host import (
     service_restart,
@@ -83,13 +86,37 @@ def amqp_joined():
 
 @hooks.hook("shared-db-relation-joined")
 def db_joined():
-    relation_set(ceilometer_database=CEILOMETER_DB)
-    subprocess.call(['ceilometer-dbsync'])
+    if is_relation_made('mysql-db'):
+        # error, mysql is used
+        e = ('Attempting to associate a mongo database when there is already '
+             'associated a mysql one')
+        log(e, level=ERROR)
+        raise Exception(e)
 
+    relation_set(ceilometer_database=CEILOMETER_DB)
+
+@hooks.hook("mysql-db-relation-joined")
+def mysql_db_joined():
+    if is_relation_made('shared-db'):
+        # error, mongo is used
+        e = ('Attempting to associate a mysql database when there is already '
+             'associated a mongo one')
+        log(e, level=ERROR)
+        raise Exception(e)
+
+    host = unit_get('private-address')
+    conf = config()
+    relation_set(database=conf['database'],
+                 username=conf['database-user'],
+                 hostname=host)
+
+    subprocess.call(['ceilometer-dbsync'])
 
 @hooks.hook("amqp-relation-changed",
             "shared-db-relation-changed",
-            "shared-db-relation-departed")
+            "mysql-db-relation-changed"
+            "shared-db-relation-departed",
+            "mysql-db-relation-departed")
 @restart_on_change(restart_map())
 def any_changed():
     CONFIGS.write_all()

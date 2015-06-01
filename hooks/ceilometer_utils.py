@@ -75,7 +75,7 @@ CONFIG_FILES = OrderedDict([
                                                          service_user=SVC),
                           context.AMQPContext(ssl_dir=CEILOMETER_CONF_DIR),
                           LoggingConfigContext(),
-                          context.SharedDBContext(),
+                          context.SharedDBContext(database=CEILOMETER_DB),
                           MongoDBContext(),
                           CeilometerContext(),
                           context.SyslogContext(),
